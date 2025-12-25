@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cart | FlexeMC</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#160d1f,#0b0014);color:#fff;min-height:100vh}
+.background{position:fixed;width:100%;height:100%;z-index:-1;overflow:hidden}
+.circle{position:absolute;border-radius:50%;background:rgba(116,21,160,.15);filter:blur(50px)}
+.circle1{width:300px;height:300px;top:-50px;left:-50px}
+.circle2{width:400px;height:400px;bottom:-100px;right:-100px}
+.circle3{width:250px;height:250px;top:50%;left:40%}
+nav{display:flex;justify-content:flex-end;padding:15px 20px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);position:relative;z-index:50}
+.burger{width:35px;height:28px;cursor:pointer;position:relative}
+.burger span{position:absolute;width:35px;height:4px;background:#fff;border-radius:5px;transition:.3s}
+.burger span:nth-child(1){top:0}
+.burger span:nth-child(2){top:12px}
+.burger span:nth-child(3){bottom:0}
+.menu{position:absolute;top:60px;right:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(15px);border-radius:15px;display:none;flex-direction:column;min-width:160px;z-index:200}
+.menu a{padding:12px;text-decoration:none;color:#fff}
+.menu a:hover{background:#6611b6;border-radius:5px}
+.container{max-width:600px;margin:60px auto 20px;padding:0 10px;display:flex;flex-direction:column;gap:20px}
+.product{position:relative;border-radius:30px;background:linear-gradient(145deg,rgba(0,0,0,.6),rgba(120,5,197,.25));padding:20px;backdrop-filter:blur(10px)}
+.product .glass{position:absolute;inset:8px;border-radius:30px;background:linear-gradient(0deg,rgba(255,255,255,.2),rgba(255,255,255,.1));pointer-events:none}
+.product-info h3{margin:0;color:#6611b6}
+.price{color:#ffd700;font-weight:bold}
+.qty-controls{display:flex;align-items:center;gap:12px;margin-top:10px}
+.qty-controls button{width:35px;height:35px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(145deg,#5310c0,#6611b6);color:white;font-size:18px;transition:.15s}
+.qty-controls button:active{transform:scale(.85)}
+.qty-controls span{font-size:18px;font-weight:bold;min-width:20px;text-align:center}
+.coupon-box{background:rgba(0,0,0,.5);padding:15px;border-radius:20px;display:flex;gap:10px}
+.coupon-box input{flex:1;padding:10px;border-radius:10px;border:none}
+.coupon-box button{padding:10px 15px;border:none;border-radius:10px;background:#6611b6;color:#fff;cursor:pointer}
+.add-btn{background:linear-gradient(to right,#5310c0,#6611b6);padding:12px;border:none;border-radius:12px;color:#fff;cursor:pointer;margin-top:10px}
+.total{background:rgba(0,0,0,.6);padding:15px;border-radius:20px;text-align:center;font-size:1.2rem}
+</style>
+</head>
+<body>
+
+<div class="background">
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+  <div class="circle circle3"></div>
+</div>
+
+<nav>
+  <div class="burger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  <div class="menu" id="menu">
+    <a href="index.html">HOME</a>
+    <a href="ranks.html">RANKS</a>
+    <a href="checkout.html">Checkout</a>
+    <a href="admin.html">ADMIN</a>
+  </div>
+</nav>
+
+<div class="container" id="cartContainer"></div>
+
+<div class="container">
+  <div class="coupon-box">
+    <input id="couponCode" placeholder="Coupon Code">
+    <button onclick="applyCoupon()">Apply</button>
+  </div>
+  <button class="add-btn" onclick="clearCart()">Clear Cart</button>
+  <button class="add-btn" onclick="checkout()">Checkout</button>
+</div>
+
+<script>
+function toggleMenu(){const m=document.getElementById("menu");m.style.display=m.style.display==="flex"?"none":"flex"}
+
+let cart=JSON.parse(localStorage.getItem("cart"))||[];
+let coupons=JSON.parse(localStorage.getItem("adminCoupons"))||{};
+let discount=Number(localStorage.getItem("discount"))||0;
+let salesRecords=JSON.parse(localStorage.getItem("salesRecords"))||{};
+
+const container=document.getElementById("cartContainer");
+
+function renderCart(){
+  container.innerHTML="";
+  if(cart.length===0){
+    container.innerHTML="<p style='color:#aaa;text-align:center'>Cart is empty</p>";
+    return;
+  }
+  let total=0;
+  cart.forEach((item,i)=>{
+    total+=item.price*item.qty;
+    container.innerHTML+=`
+    <div class="product">
+      <div class="glass"></div>
+      <div class="product-info">
+        <h3>${item.name}</h3>
+        <div class="price">${item.price} SAR</div>
+        <div class="qty-controls">
+          <button onclick="changeQty(${i},-1)">-</button>
+          <span>${item.qty}</span>
+          <button onclick="changeQty(${i},1)">+</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  const final=total-(total*discount);
+  container.innerHTML+=`<div class="total">Total: ${final.toFixed(2)} SAR ${discount>0?`<p style="color:#0f0">Discount Applied</p>`:""}</div>`;
+}
+
+function changeQty(i,val){
+  cart[i].qty+=val;
+  if(cart[i].qty<=0) cart.splice(i,1);
+  localStorage.setItem("cart",JSON.stringify(cart));
+  renderCart();
+}
+
+function applyCoupon(){
+  if(cart.length===0){alert("Cart is empty, cannot apply coupon"); return;}
+  const code=document.getElementById("couponCode").value.trim().toUpperCase();
+  if(discount>0){alert("Coupon already used");return;}
+  if(!coupons[code] || !coupons[code].active){alert("Invalid coupon");return;}
+  const expire=coupons[code].expire;
+  if(expire){
+    let now=new Date();
+    let expireDate=new Date();
+    const match=expire.match(/^(\d+)([hm])$/);
+    if(match){
+      const num=parseInt(match[1]);
+      const unit=match[2];
+      if(unit==="h") expireDate.setHours(expireDate.getHours()+num);
+      if(unit==="m") expireDate.setMinutes(expireDate.getMinutes()+num);
+      if(now>expireDate){alert("Coupon expired"); return;}
+    }
+  }
+  discount=coupons[code].discount;
+  localStorage.setItem("discount",discount);
+  alert("Coupon applied");
+  renderCart();
+}
+
+function clearCart(){
+  localStorage.removeItem("cart");
+  renderCart();
+}
+
+function checkout(){
+  if(cart.length===0){alert("Cart is empty");return;}
+  // Update sales records
+  cart.forEach(item=>{
+    if(!salesRecords[item.name]) salesRecords[item.name]={qty:0,total:0};
+    salesRecords[item.name].qty+=item.qty;
+    salesRecords[item.name].total+=item.qty*item.price*(1-discount);
+  });
+  localStorage.setItem("salesRecords",JSON.stringify(salesRecords));
+  alert("Purchase complete! Sales updated.");
+  localStorage.removeItem("cart");
+  localStorage.removeItem("discount");
+  cart=[];
+  discount=0;
+  renderCart();
+}
+
+renderCart();
+</script>
+
+</body>
+</html>

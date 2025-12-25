@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Checkout | FlexeMC</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#160d1f,#0b0014);color:#fff;min-height:100vh}
+.background{position:fixed;width:100%;height:100%;z-index:-1;overflow:hidden}
+.circle{position:absolute;border-radius:50%;background:rgba(116,21,160,.15);filter:blur(50px)}
+.circle1{width:300px;height:300px;top:-50px;left:-50px}
+.circle2{width:400px;height:400px;bottom:-100px;right:-100px}
+.circle3{width:250px;height:250px;top:50%;left:40%}
+nav{display:flex;justify-content:flex-end;padding:15px 20px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);position:relative;z-index:50}
+.burger{width:35px;height:28px;cursor:pointer;position:relative}
+.burger span{position:absolute;width:35px;height:4px;background:#fff;border-radius:5px;transition:.3s}
+.burger span:nth-child(1){top:0}
+.burger span:nth-child(2){top:12px}
+.burger span:nth-child(3){bottom:0}
+.menu{position:absolute;top:60px;right:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(15px);border-radius:15px;display:none;flex-direction:column;min-width:160px;z-index:200}
+.menu a{padding:12px;text-decoration:none;color:#fff}
+.menu a:hover{background:#6611b6;border-radius:5px}
+.container{max-width:600px;margin:60px auto 20px;padding:0 10px;display:flex;flex-direction:column;gap:20px}
+.product{position:relative;border-radius:30px;background:linear-gradient(145deg,rgba(0,0,0,.6),rgba(120,5,197,.25));padding:20px;backdrop-filter:blur(10px)}
+.product .glass{position:absolute;inset:8px;border-radius:30px;background:linear-gradient(0deg,rgba(255,255,255,.2),rgba(255,255,255,.1));pointer-events:none}
+.product-info h3{margin:0;color:#6611b6}
+.price{color:#ffd700;font-weight:bold}
+.total{background:rgba(0,0,0,.6);padding:15px;border-radius:20px;text-align:center;font-size:1.2rem}
+.add-btn{background:linear-gradient(to right,#5310c0,#6611b6);padding:12px;border:none;border-radius:12px;color:#fff;cursor:pointer;margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="background">
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+  <div class="circle circle3"></div>
+</div>
+
+<nav>
+  <div class="burger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  <div class="menu" id="menu">
+    <a href="index.html">HOME</a>
+    <a href="ranks.html">RANKS</a>
+    <a href="cart.html">Cart</a>
+  </div>
+</nav>
+
+<div class="container" id="checkoutContainer"></div>
+
+<div class="container">
+  <button class="add-btn" onclick="placeOrder()">Place Order</button>
+</div>
+
+<script>
+function toggleMenu(){const m=document.getElementById("menu");m.style.display=m.style.display==="flex"?"none":"flex"}
+
+let cart=JSON.parse(localStorage.getItem("cart"))||[];
+let discount=Number(localStorage.getItem("discount"))||0;
+const container=document.getElementById("checkoutContainer");
+
+function renderCheckout(){
+  container.innerHTML="";
+  if(cart.length===0){alert("Cart is empty!");window.location.href="ranks.html";return;}
+  let total=0;
+  cart.forEach(item=>{
+    total+=item.price*item.qty;
+    container.innerHTML+=`
+    <div class="product">
+      <div class="glass"></div>
+      <div class="product-info">
+        <h3>${item.name}</h3>
+        <div class="price">${item.price} SAR x ${item.qty}</div>
+      </div>
+    </div>`;
+  });
+  const final=total-(total*discount);
+  container.innerHTML+=`<div class="total">Total: ${final.toFixed(2)} SAR ${discount>0?`<p style="color:#0f0">Discount Applied</p>`:""}</div>`;
+}
+
+function placeOrder(){
+  if(cart.length===0){alert("Cart is empty!");return;}
+  // هنا يمكنك إضافة الكود لإرسال الطلب للـ Discord bot أو نظام الدفع
+  alert("Order placed successfully!");
+  localStorage.removeItem("cart");
+  localStorage.removeItem("discount");
+  window.location.href="ranks.html";
+}
+
+renderCheckout();
+</script>
+
+</body>
+</html>

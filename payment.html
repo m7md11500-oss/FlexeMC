@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payment | FlexeMC</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(135deg,#160d1f,#0b0014);
+  color:#fff;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* Background Circles */
+.background{position:fixed;width:100%;height:100%;z-index:-1;overflow:hidden;}
+.circle{position:absolute;border-radius:50%;background:rgba(116,21,160,.15);filter:blur(50px);}
+.circle1{width:300px;height:300px;top:-50px;left:-50px;}
+.circle2{width:400px;height:400px;bottom:-100px;right:-100px;}
+.circle3{width:250px;height:250px;top:50%;left:40%;}
+
+/* Nav */
+nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 25px;
+  background:rgba(0,0,0,.4);
+  backdrop-filter:blur(10px);
+  position:relative;
+  z-index:50;
+}
+.burger{
+  width:35px;
+  cursor:pointer;
+}
+.burger span{
+  display:block;
+  height:4px;
+  background:#fff;
+  margin:6px 0;
+  border-radius:5px;
+}
+.menu{
+  position:absolute;
+  top:70px;
+  right:20px;
+  background:rgba(0,0,0,.8);
+  border-radius:12px;
+  display:none;
+  flex-direction:column;
+  padding:10px;
+  z-index:200;
+}
+.menu a{
+  color:#fff;
+  text-decoration:none;
+  padding:10px;
+}
+.menu a:hover{background:#6611b6;border-radius:6px;}
+
+/* Container */
+.container{
+  max-width:600px;
+  margin:60px auto 20px;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  padding:0 10px;
+}
+
+/* Card / Glass */
+.card{
+  position:relative;
+  border-radius:20px;
+  padding:20px;
+  background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(0,0,0,.5));
+  backdrop-filter:blur(12px);
+  box-shadow:0 10px 25px rgba(0,0,0,.5);
+}
+.card .glass{
+  position:absolute;
+  inset:6px;
+  border-radius:18px;
+  background:linear-gradient(0deg,rgba(255,255,255,.25),rgba(255,255,255,.05));
+  pointer-events:none;
+}
+
+/* Buttons */
+.add-btn{
+  background:linear-gradient(135deg,#001a8f,#1d3bc4);
+  border:none;
+  color:#fff;
+  padding:12px;
+  border-radius:12px;
+  cursor:pointer;
+  width:100%;
+}
+.add-btn:hover{opacity:.9;}
+
+/* Payment Methods */
+.payment-method{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.payment-method button{
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  background:linear-gradient(135deg,#5310c0,#6611b6);
+  color:#fff;
+  transition:.2s;
+}
+.payment-method button:hover{opacity:.85;}
+</style>
+</head>
+
+<body>
+<div class="background">
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+  <div class="circle circle3"></div>
+</div>
+
+<nav>
+  <h2>Payment</h2>
+  <div class="burger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  <div class="menu" id="menu">
+    <a href="index.html">Home</a>
+    <a href="ranks.html">Ranks</a>
+    <a href="cart.html">Cart</a>
+    <a href="checkout.html">Checkout</a>
+    <a href="admin.html">Admin</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <div class="glass"></div>
+    <h3>🛒 Your Order</h3>
+    <div id="orderSummary"></div>
+    <p id="totalAmount"></p>
+  </div>
+
+  <div class="card">
+    <div class="glass"></div>
+    <h3>💳 Choose Payment Method</h3>
+    <div class="payment-method">
+      <button onclick="payStripe()">Pay with Stripe</button>
+      <button onclick="payPayPal()">Pay with PayPal</button>
+    </div>
+  </div>
+</div>
+
+<script src="cart.js"></script>
+<script>
+function toggleMenu(){
+  const m=document.getElementById("menu");
+  m.style.display = m.style.display==="flex"?"none":"flex";
+}
+
+// Load cart and display order summary
+const cart = JSON.parse(localStorage.getItem("cart")) || [];
+let total = 0;
+const summary = document.getElementById("orderSummary");
+summary.innerHTML = "";
+cart.forEach(item => {
+  total += item.price * (item.qty || 1);
+  const div = document.createElement("div");
+  div.textContent = `${item.name} - ${item.price} SAR x ${item.qty || 1}`;
+  summary.appendChild(div);
+});
+document.getElementById("totalAmount").innerText = `Total: ${total.toFixed(2)} SAR`;
+
+// Placeholder payment functions
+function payStripe(){
+  alert(`Stripe Payment\nTotal: ${total.toFixed(2)} SAR`);
+  completeOrder();
+}
+function payPayPal(){
+  alert(`PayPal Payment\nTotal: ${total.toFixed(2)} SAR`);
+  completeOrder();
+}
+
+// Complete order: save log & clear cart
+function completeOrder(){
+  const logs = JSON.parse(localStorage.getItem("adminLogs")) || [];
+  const player = localStorage.getItem("playerName") || "Guest";
+  const discord = localStorage.getItem("playerDiscord") || "Unknown";
+  const date = new Date().toLocaleString();
+  logs.push({player, discord, cart, date});
+  localStorage.setItem("adminLogs", JSON.stringify(logs));
+  localStorage.removeItem("cart");
+  alert("✅ Order Completed!");
+  window.location.href="index.html";
+}
+</script>
+</body>
+</html>

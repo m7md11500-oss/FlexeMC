@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel | FlexeMC</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#160d1f,#0b0014);color:#fff;min-height:100vh}
+.background{position:fixed;width:100%;height:100%;z-index:-1;overflow:hidden}
+.circle{position:absolute;border-radius:50%;background:rgba(116,21,160,.15);filter:blur(50px)}
+.circle1{width:300px;height:300px;top:-50px;left:-50px}
+.circle2{width:400px;height:400px;bottom:-100px;right:-100px}
+.circle3{width:250px;height:250px;top:50%;left:40%}
+nav{display:flex;justify-content:flex-end;padding:15px 20px;background:rgba(0,0,0,.4);backdrop-filter:blur(10px);position:relative;z-index:50}
+.burger{width:35px;height:28px;cursor:pointer;position:relative}
+.burger span{position:absolute;width:35px;height:4px;background:#fff;border-radius:5px;transition:.3s}
+.burger span:nth-child(1){top:0}
+.burger span:nth-child(2){top:12px}
+.burger span:nth-child(3){bottom:0}
+.menu{position:absolute;top:60px;right:20px;background:rgba(0,0,0,.8);backdrop-filter:blur(15px);border-radius:15px;display:none;flex-direction:column;min-width:160px;z-index:200}
+.menu a{padding:12px;text-decoration:none;color:#fff}
+.menu a:hover{background:#6611b6;border-radius:5px}
+.container{max-width:700px;margin:60px auto 20px;padding:0 10px;display:flex;flex-direction:column;gap:20px}
+.card{position:relative;border-radius:20px;background:linear-gradient(145deg,rgba(0,0,0,.6),rgba(120,5,197,.25));padding:20px;backdrop-filter:blur(10px)}
+.card .glass{position:absolute;inset:8px;border-radius:20px;background:linear-gradient(0deg,rgba(255,255,255,.2),rgba(255,255,255,.1));pointer-events:none}
+h2{margin:0 0 10px 0}
+input,select,button{padding:10px;border-radius:10px;border:none;font-size:14px}
+input,select{width:calc(100% - 20px);margin-bottom:10px}
+button{background:#6611b6;color:#fff;cursor:pointer;margin-top:5px}
+button:hover{opacity:.9}
+.coupon-block{background:rgba(0,0,0,.5);padding:15px;border-radius:15px;margin-bottom:10px;display:flex;flex-direction:column;gap:5px}
+.coupon-block input{width:100%;padding:8px;border-radius:8px;border:none;font-size:14px}
+.coupon-actions{display:flex;gap:5px}
+.coupon-actions button{flex:1}
+.table{width:100%;border-collapse:collapse;margin-top:10px}
+.table th,.table td{border:1px solid #444;padding:8px;text-align:center}
+.table th{background:#2b0055}
+</style>
+</head>
+<body>
+
+<div class="background">
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+  <div class="circle circle3"></div>
+</div>
+
+<nav>
+  <div class="burger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  <div class="menu" id="menu">
+    <a href="index.html">HOME</a>
+    <a href="ranks.html">RANKS</a>
+    <a href="cart.html">CART</a>
+    <a href="admin.html">ADMIN</a>
+  </div>
+</nav>
+
+<div class="container">
+  <h2>Coupon Management</h2>
+  <div class="card">
+    <input id="newCode" placeholder="Coupon Code">
+    <input id="newDiscount" placeholder="Discount (0.1 = 10%)">
+    <input id="newExpire" placeholder="Expire (e.g., 1h / 30m)">
+    <button onclick="addCoupon()">Create Coupon</button>
+  </div>
+
+  <div id="couponList"></div>
+
+  <h2>Sales Records</h2>
+  <div class="card">
+    <table class="table" id="salesTable">
+      <thead>
+        <tr><th>Product</th><th>Quantity Sold</th><th>Total Earned (SAR)</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function toggleMenu(){const m=document.getElementById("menu");m.style.display=m.style.display==="flex"?"none":"flex"}
+
+// Initialize localStorage
+if(!localStorage.getItem("adminCoupons")) localStorage.setItem("adminCoupons",JSON.stringify({}));
+if(!localStorage.getItem("salesRecords")) localStorage.setItem("salesRecords",JSON.stringify({}));
+
+function renderCoupons(){
+  const list=document.getElementById("couponList");
+  const coupons=JSON.parse(localStorage.getItem("adminCoupons"));
+  list.innerHTML="";
+  for(const code in coupons){
+    const c=coupons[code];
+    const div=document.createElement("div");
+    div.className="coupon-block";
+    div.innerHTML=`
+      <input value="${code}" readonly placeholder="Code">
+      <input value="${c.discount}" placeholder="Discount">
+      <input value="${c.expire}" placeholder="Expire">
+      <div class="coupon-actions">
+        <button onclick="updateCoupon('${code}', this.parentElement.parentElement)">Update</button>
+        <button onclick="deleteCoupon('${code}')">Delete</button>
+        <button onclick="toggleActive('${code}')">${c.active?'Disable':'Enable'}</button>
+      </div>`;
+    list.appendChild(div);
+  }
+}
+
+function addCoupon(){
+  const code=document.getElementById("newCode").value.trim().toUpperCase();
+  const discount=parseFloat(document.getElementById("newDiscount").value);
+  const expire=document.getElementById("newExpire").value.trim();
+  if(!code || isNaN(discount) || discount<=0 || !expire){alert("Fill fields correctly");return;}
+  const coupons=JSON.parse(localStorage.getItem("adminCoupons"));
+  if(coupons[code]){alert("Code already exists"); return;}
+  coupons[code]={discount,expire,active:true};
+  localStorage.setItem("adminCoupons",JSON.stringify(coupons));
+  renderCoupons();
+  alert("Coupon created!");
+}
+
+function updateCoupon(oldCode, elem){
+  const coupons=JSON.parse(localStorage.getItem("adminCoupons"));
+  const discount=parseFloat(elem.querySelectorAll("input")[1].value);
+  const expire=elem.querySelectorAll("input")[2].value.trim();
+  if(isNaN(discount)||discount<=0||!expire){alert("Invalid values");return;}
+  coupons[oldCode].discount=discount;
+  coupons[oldCode].expire=expire;
+  localStorage.setItem("adminCoupons",JSON.stringify(coupons));
+  renderCoupons();
+  alert("Coupon updated!");
+}
+
+function deleteCoupon(code){
+  const coupons=JSON.parse(localStorage.getItem("adminCoupons"));
+  delete coupons[code];
+  localStorage.setItem("adminCoupons",JSON.stringify(coupons));
+  renderCoupons();
+  alert("Coupon deleted");
+}
+
+function toggleActive(code){
+  const coupons=JSON.parse(localStorage.getItem("adminCoupons"));
+  coupons[code].active=!coupons[code].active;
+  localStorage.setItem("adminCoupons",JSON.stringify(coupons));
+  renderCoupons();
+}
+
+function renderSales(){
+  const sales=JSON.parse(localStorage.getItem("salesRecords"));
+  const tbody=document.querySelector("#salesTable tbody");
+  tbody.innerHTML="";
+  for(const product in sales){
+    const row=document.createElement("tr");
+    row.innerHTML=`<td>${product}</td><td>${sales[product].qty}</td><td>${sales[product].total.toFixed(2)}</td>`;
+    tbody.appendChild(row);
+  }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{renderCoupons(); renderSales();});
+</script>
+
+</body>
+</html>

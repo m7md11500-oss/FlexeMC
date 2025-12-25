@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlexeMC | تواصل معنا</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      background: #121212;
+      color: #ffffff;
+      font-family: "Tajawal", sans-serif;
+    }
+
+    /* Navbar */
+    .navbar { background: #1f1f1f; }
+    .navbar-brand { font-weight: bold; }
+
+    /* Card */
+    .contact-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    .contact-card h2 {
+      border: 1px solid #131212;
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+    }
+
+    /* Inputs */
+    .form-control {
+      background: #121212;
+      border: 1px solid #333;
+      color: #fff;
+    }
+
+    .form-control:focus {
+      background: #121212;
+      color: #fff;
+      border-color: #1d3bc4;
+      box-shadow: none;
+    }
+
+    /* Button */
+    .btn-send {
+      background: linear-gradient(135deg, #001a8f, #1d3bc4);
+      border: none;
+      padding: 12px;
+      font-weight: bold;
+    }
+
+    .btn-send:hover { opacity: 0.9; }
+
+    /* Footer Icons */
+    .social a {
+      color: #ffffff;
+      margin: 0 10px;
+      font-size: 20px;
+      transition: 0.3s;
+    }
+
+    .social a:hover { color: #1d3bc4; }
+  </style>
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="index.html">
+      <img src="images/logo.png" width="36" height="36" class="me-2">
+      FlexeMC
+    </a>
+
+    <div class="collapse navbar-collapse justify-content-end">
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="index.html">الرئيسية</a></li>
+        <li class="nav-item"><a class="nav-link" href="ranks.html">الرتب</a></li>
+        <li class="nav-item"><a class="nav-link active" href="contact.html">تواصل</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Content -->
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7">
+      <div class="contact-card text-center shadow">
+
+        <h2>📩 بلاغات </h2>
+
+        <form id="contactForm">
+          <div class="mb-3 text-start">
+            <label class="form-label">اسمك في ديسكورد</label>
+            <input type="text" class="form-control" id="discordName" placeholder="Example#1234" required>
+          </div>
+
+          <div class="mb-3 text-start">
+            <label class="form-label">تفاصيل المشكلة</label>
+            <textarea class="form-control" id="problemDetails" rows="5"
+              placeholder="اشرح مشكلتك بالكامل، وفي حال وجود أدلة أرفق الروابط (مثل top4top)"
+              required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-send w-100">
+            إرسال البلاغ
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="text-center mt-5 mb-4">
+  <div class="social mb-2">
+    <a href="https://discord.gg/3pjNefTzXH" target="_blank"><i class="fa-brands fa-discord"></i></a>
+    <a href="https://www.tiktok.com/@flexemc" target="_blank"><i class="fa-brands fa-tiktok"></i></a>
+  </div>
+  <p class="text-muted">&copy; 2025 FlexeMC</p>
+</footer>
+
+<script>
+document.getElementById("contactForm").addEventListener("submit", function(e){
+  e.preventDefault();
+
+  const discordName = document.getElementById("discordName").value.trim();
+  const problemDetails = document.getElementById("problemDetails").value.trim();
+
+  if(!discordName || !problemDetails){
+    alert("الرجاء ملء جميع الحقول!");
+    return;
+  }
+
+  // احفظ البلاغات في localStorage
+  let reports = JSON.parse(localStorage.getItem("reports")) || [];
+  reports.push({
+    discordName,
+    problemDetails,
+    date: new Date().toLocaleString()
+  });
+  localStorage.setItem("reports", JSON.stringify(reports));
+
+  alert("✅ تم إرسال البلاغ بنجاح!");
+  this.reset();
+});
+</script>
+
+</body>
+</html>

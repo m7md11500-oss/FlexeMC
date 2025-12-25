@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RANKS | FlexeMC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#0f1520;
+  color:#fff;
+}
+
+/* Background */
+.background{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+}
+.circle{
+  position:absolute;
+  border-radius:50%;
+  background:rgba(0,26,143,0.25);
+  filter:blur(80px);
+  animation:float 20s infinite alternate;
+}
+.circle1{width:300px;height:300px;top:-50px;left:-50px}
+.circle2{width:400px;height:400px;bottom:-100px;right:-100px}
+.circle3{width:250px;height:250px;top:40%;left:45%}
+@keyframes float{
+  from{transform:translateY(0)}
+  to{transform:translateY(60px)}
+}
+
+/* Header & Burger */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 25px;
+}
+header img{height:45px}
+.burger{width:35px;cursor:pointer;position:relative;z-index:100}
+.burger span{
+  display:block;
+  height:4px;
+  background:#fff;
+  margin:6px 0;
+  border-radius:5px;
+}
+.menu{
+  position:absolute;
+  top:70px;
+  right:20px;
+  background:#121820;
+  border-radius:12px;
+  display:none;
+  flex-direction:column;
+  padding:10px;
+}
+.menu a{
+  color:#fff;
+  text-decoration:none;
+  padding:8px;
+}
+.menu a:hover{background:#1b233d;border-radius:6px}
+
+/* Container */
+.container{
+  max-width:480px;
+  margin:40px auto;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+  padding:0 10px;
+}
+
+/* Product Card */
+.product{
+  position:relative;
+  border-radius:28px;
+  padding:18px;
+  background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.5));
+  backdrop-filter:blur(12px);
+  box-shadow:0 15px 35px rgba(0,0,0,.5);
+}
+.glass{
+  position:absolute;
+  inset:6px;
+  border-radius:26px;
+  background:linear-gradient(0deg,rgba(255,255,255,.25),rgba(255,255,255,.05));
+  pointer-events:none;
+}
+.product-image{text-align:center}
+.product-image img{width:90px}
+.product-info{text-align:center;position:relative;z-index:2}
+.product-info h3{margin:12px 0 5px;font-size:20px;font-weight:900}
+.price{color:#ffd700;font-weight:bold;margin-bottom:10px;display:block}
+
+/* Quantity Controls */
+.qty-controls{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:8px;
+}
+.qty-controls button{
+  width:30px;
+  height:30px;
+  border:none;
+  border-radius:50%;
+  background:linear-gradient(145deg,#5310c0,#6611b6);
+  color:#fff;
+  cursor:pointer;
+  font-weight:bold;
+}
+.qty-controls span{min-width:20px;text-align:center;color:#fff;font-weight:bold}
+
+</style>
+</head>
+<body>
+
+<div class="background">
+  <div class="circle circle1"></div>
+  <div class="circle circle2"></div>
+  <div class="circle circle3"></div>
+</div>
+
+<header>
+  <img src="public/images/logo.png">
+  <div class="burger" onclick="toggleMenu()"><span></span><span></span><span></span></div>
+  <div class="menu" id="menu">
+    <a href="index.html">HOME</a>
+    <a href="ranks.html">RANKS</a>
+    <a href="upgrade.html">UPGRADE</a>
+    <a href="cart.html">CART</a>
+  </div>
+</header>
+
+<div class="container" id="ranksContainer"></div>
+
+<script>
+function toggleMenu(){
+  const m=document.getElementById("menu");
+  m.style.display=m.style.display==="flex"?"none":"flex";
+}
+
+// Ranks Data
+const ranks=[
+  {name:"VIP",price:2,color:"#ffcc00",img:"public/images/vip.png"},
+  {name:"MVP",price:4,color:"#002aff",img:"public/images/mvp.png"},
+  {name:"ELITE",price:8,color:"#8a77ff",img:"public/images/elite.png"},
+  {name:"SUPREME",price:12,color:"#2dcf12",img:"public/images/supreme.png"},
+  {name:"RADIANT",price:16,color:"#03c9ff",img:"public/images/radiant.png"}
+];
+
+let cart=JSON.parse(localStorage.getItem("cart"))||[];
+
+// Render Ranks
+function renderRanks(){
+  const container=document.getElementById("ranksContainer");
+  container.innerHTML="";
+  ranks.forEach((r,i)=>{
+    const itemInCart=cart.find(c=>c.name===r.name);
+    const qty=itemInCart?itemInCart.qty:0;
+
+    const div=document.createElement("div");
+    div.className="product";
+    div.innerHTML=`
+      <div class="glass"></div>
+      <div class="product-image"><img src="${r.img}"></div>
+      <div class="product-info">
+        <h3 style="color:${r.color}">${r.name} RANK</h3>
+        <span class="price">${r.price.toFixed(2)} USD</span>
+        <div class="qty-controls">
+          <button onclick="updateCart(${i},-1)">-</button>
+          <span>${qty}</span>
+          <button onclick="updateCart(${i},1)">+</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// Add or Remove from cart
+function updateCart(i, change){
+  const rank=ranks[i];
+  const index=cart.findIndex(c=>c.name===rank.name);
+  if(index>-1){
+    cart[index].qty+=change;
+    if(cart[index].qty<=0) cart.splice(index,1);
+  }else if(change>0){
+    cart.push({...rank,qty:1});
+  }
+  localStorage.setItem("cart",JSON.stringify(cart));
+  renderRanks();
+}
+
+renderRanks();
+</script>
+
+</body>
+</html>
